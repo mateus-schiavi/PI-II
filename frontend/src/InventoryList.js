@@ -13,6 +13,7 @@ const InventoryList = () => {
   };
 
   const formatCurrency = (value) => {
+    if (!value) return 0
     const cleanValue = value.replace(/\D/g, '');
     
     const numberValue = (parseInt(cleanValue, 10) / 100).toFixed(2);
