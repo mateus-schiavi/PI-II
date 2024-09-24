@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "serviço de gerenciamento e controle de estoque",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mateus-schiavi/PI-II.git"
+  },
+  "author": "DRP01-PJI240-GRUPO015",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mateus-schiavi/PI-II/issues"
+  },
+  "homepage": "https://github.com/mateus-schiavi/PI-II#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "mongoose": "^8.6.3"
+  }
+}
