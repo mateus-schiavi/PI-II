@@ -9,23 +9,23 @@ const InventoryList = () => {
   const [editItem, setEditItem] = useState(null);
 
   const handleEditClick = (item) => {
-    setEditItem(item); // Preenche o formulário de edição com o item selecionado
+    setEditItem(item);
   };
 
   const formatCurrency = (value) => {
-    if (!value) return 0
+    if (!value) return ''; 
+
     const cleanValue = value.replace(/\D/g, '');
-    
     const numberValue = (parseInt(cleanValue, 10) / 100).toFixed(2);
-    
+
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(numberValue);
   };
-  
+
   const cleanCurrencyValue = (value) => {
-    // Remove o "R$" e os separadores de milhares (pontos e vírgulas)
+    if (!value) return 0;
     return parseFloat(value.replace(/\D/g, '')) / 100;
   };
 
@@ -101,7 +101,8 @@ const InventoryList = () => {
           type="text"
           placeholder="Preço"
           value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem, price: formatCurrency(e.target.value) })} 
+          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} 
+          onBlur={(e) => setNewItem({ ...newItem, price: formatCurrency(e.target.value) })} 
           required
         />
         <button type="submit">Adicionar</button>
@@ -146,7 +147,8 @@ const InventoryList = () => {
               type="text"
               placeholder="Preço"
               value={editItem.price}
-              onChange={(e) => setEditItem({ ...editItem, price: formatCurrency(e.target.value) })}
+              onChange={(e) => setEditItem({ ...editItem, price: e.target.value })}
+              onBlur={(e) => setEditItem({ ...editItem, price: formatCurrency(e.target.value) })} 
               required
             />
             <button type="submit">Salvar Alterações</button>
