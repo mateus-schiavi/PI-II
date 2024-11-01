@@ -1,23 +1,38 @@
 import React, { useEffect, useState } from 'react';
+import ReactModal from 'react-modal';
 import axios from 'axios';
 import './InventoryList.css';
+
+ReactModal.setAppElement('#root');
 
 const InventoryList = () => {
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
   const [newItem, setNewItem] = useState({ name: '', quantity: '', price: '' });
   const [editItem, setEditItem] = useState(null);
+  const [sellingItem, setSellingItem] = useState(null);
+  const [saleQuantity, setSaleQuantity] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
 
   const handleEditClick = (item) => {
-    setEditItem(item);
+    setEditItem({ ...item, price: item.price.toString() });
+    setIsEditModalOpen(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditItem(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleNewItemPriceChange = (e) => {
+    const value = e.target.value;
+    setNewItem({ ...newItem, price: value });
   };
 
   const formatCurrency = (value) => {
-    if (!value) return ''; 
-
-    const cleanValue = value.replace(/\D/g, '');
-    const numberValue = (parseInt(cleanValue, 10) / 100).toFixed(2);
-
+    if (!value) return '';
+    const numberValue = parseFloat(value).toFixed(2);
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -26,7 +41,8 @@ const InventoryList = () => {
 
   const cleanCurrencyValue = (value) => {
     if (!value) return 0;
-    return parseFloat(value.replace(/\D/g, '')) / 100;
+    const cleanValue = value.replace(/[^\d,]/g, '').replace(',', '.');
+    return parseFloat(cleanValue) || 0;
   };
 
   useEffect(() => {
@@ -67,12 +83,50 @@ const InventoryList = () => {
     e.preventDefault();
     try {
       const cleanedPrice = cleanCurrencyValue(editItem.price);
-      const response = await axios.put(`http://localhost:5000/api/inventory/items/${editItem._id}`, { ...editItem, price: cleanedPrice });
+      const updatedItem = {
+        name: editItem.name,
+        quantity: editItem.quantity,
+        price: cleanedPrice,
+      };
+
+      const response = await axios.put(`http://localhost:5000/api/inventory/items/${editItem._id}`, updatedItem);
       setItems(items.map(item => (item._id === editItem._id ? response.data : item)));
       setEditItem(null);
+      setIsEditModalOpen(false);
     } catch (err) {
       setError('Erro ao editar item');
     }
+  };
+
+  const handleSellClick = (item) => {
+    setSellingItem(item);
+    setSaleQuantity('');
+    setIsSaleModalOpen(true);
+  };
+
+  const handleSaveSale = async () => {
+    if (parseInt(saleQuantity) > sellingItem.quantity) {
+      setError('Quantidade de venda excede o estoque');
+      return;
+    }
+
+    const updatedQuantity = sellingItem.quantity - parseInt(saleQuantity);
+    try {
+      const response = await axios.put(`http://localhost:5000/api/inventory/items/${sellingItem._id}`, { ...sellingItem, quantity: updatedQuantity });
+      setItems(items.map(i => (i._id === sellingItem._id ? response.data : i)));
+      setSellingItem(null);
+      setSaleQuantity('');
+      setError('');
+      setIsSaleModalOpen(false);
+    } catch (err) {
+      setError('Erro ao salvar venda');
+    }
+  };
+
+  const handleCancelSale = () => {
+    setSellingItem(null);
+    setSaleQuantity('');
+    setIsSaleModalOpen(false);
   };
 
   return (
@@ -80,7 +134,6 @@ const InventoryList = () => {
       <h1>Controle e Gerenciamento de Estoque</h1>
       {error && <p className="error-message">{error}</p>}
 
-      {/* Formulário de Adicionar Produto */}
       <h2>Adicionar Produto</h2>
       <form onSubmit={handleAddItem}>
         <input
@@ -91,32 +144,31 @@ const InventoryList = () => {
           required
         />
         <input
+          type="text"
+          placeholder="Preço"
+          value={newItem.price}
+          onChange={handleNewItemPriceChange}
+          required
+        />
+        <input
           type="number"
           placeholder="Quantidade"
           value={newItem.quantity}
           onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
           required
         />
-        <input
-          type="text"
-          placeholder="Preço"
-          value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })} 
-          onBlur={(e) => setNewItem({ ...newItem, price: formatCurrency(e.target.value) })} 
-          required
-        />
         <button type="submit">Adicionar</button>
       </form>
 
-      {/* Lista de Produtos */}
       <h2>Lista de Produtos</h2>
       <ul>
         {items.map(item => (
           <li key={item._id} style={{ marginBottom: '20px' }}>
-            <p><strong>Nome do produto:</strong> {item.name}</p>
-            <p><strong>Quantidade:</strong> {item.quantity}</p>
-            <p><strong>Preço:</strong> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price)}</p>
+            <p name="item-info"><strong>Nome do produto:</strong> {item.name}</p>
+            <p name="item-info"><strong>Estoque:</strong> {item.quantity}</p>
+            <p name="item-info"><strong>Preço:</strong> {formatCurrency(item.price)}</p>
             <div className="button-group">
+              <button onClick={() => handleSellClick(item)}>Vender</button>
               <button onClick={() => handleEditClick(item)}>Editar</button>
               <button onClick={() => handleDelete(item._id)}>Excluir</button>
             </div>
@@ -124,37 +176,61 @@ const InventoryList = () => {
         ))}
       </ul>
 
-      {/* Formulário de Editar Produto */}
-      {editItem && (
-        <div>
-          <h2>Editar Produto</h2>
-          <form onSubmit={handleEditItem}>
-            <input
-              type="text"
-              placeholder="Nome"
-              value={editItem.name}
-              onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Quantidade"
-              value={editItem.quantity}
-              onChange={(e) => setEditItem({ ...editItem, quantity: e.target.value })}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Preço"
-              value={editItem.price}
-              onChange={(e) => setEditItem({ ...editItem, price: e.target.value })}
-              onBlur={(e) => setEditItem({ ...editItem, price: formatCurrency(e.target.value) })} 
-              required
-            />
-            <button type="submit">Salvar Alterações</button>
-          </form>
-        </div>
-      )}
+      <ReactModal
+        isOpen={isSaleModalOpen}
+        onRequestClose={handleCancelSale}
+        contentLabel="Venda do Produto"
+      >
+        <h2>Venda do Produto</h2>
+        <form className="sale" onSubmit={(e) => { e.preventDefault(); handleSaveSale(); }}>
+          <input
+            type="number"
+            placeholder="Quantidade vendida"
+            value={saleQuantity}
+            onChange={(e) => setSaleQuantity(e.target.value)}
+            required
+          />
+          <div className="button-group">
+            <button type="submit">Salvar</button>
+            <button type="button" onClick={handleCancelSale}>Cancelar</button>
+          </div>
+        </form>
+      </ReactModal>
+
+      <ReactModal
+        isOpen={isEditModalOpen}
+        onRequestClose={handleCancelEdit}
+        contentLabel="Editar Produto"
+      >
+        <h2>Editar Produto</h2>
+        <form onSubmit={handleEditItem}>
+          <input
+            type="text"
+            placeholder="Nome do produto"
+            value={editItem?.name}
+            onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Preço"
+            value={editItem?.price}
+            onChange={(e) => setEditItem({ ...editItem, price: e.target.value })}
+            required
+          />
+          <input
+            type="number"
+            placeholder="Quantidade"
+            value={editItem?.quantity}
+            onChange={(e) => setEditItem({ ...editItem, quantity: e.target.value })}
+            required
+          />
+          <div className="button-group">
+            <button type="submit">Salvar</button>
+            <button type="button" onClick={handleCancelEdit}>Cancelar</button>
+          </div>
+        </form>
+      </ReactModal>
     </div>
   );
 };
