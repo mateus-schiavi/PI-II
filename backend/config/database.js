@@ -1,13 +1,17 @@
- 
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/stock-management', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const connectDB = async () => {
+  try {
+    // Conecte ao MongoDB (substitua pela sua URI do MongoDB)
+    await mongoose.connect('mongodb://localhost:27017/stock-management', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('Conectado ao MongoDB');
+  } catch (error) {
+    console.error('Erro ao conectar ao MongoDB', error);
+    process.exit(1);
+  }
+};
 
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', () => {
-  console.log('Connected to the database');
-});
+module.exports = connectDB;

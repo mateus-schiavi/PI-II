@@ -5,7 +5,7 @@ import './InventoryList.css';
 
 ReactModal.setAppElement('#root');
 
-const InventoryList = () => {
+const InventoryList = ({onLogout}) => {
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
   const [newItem, setNewItem] = useState({ name: '', quantity: '', price: '' });
@@ -161,6 +161,7 @@ const InventoryList = () => {
       </form>
 
       <h2>Lista de Produtos</h2>
+      <button onClick={onLogout}>Logout</button>
       <ul>
         {items.map(item => (
           <li key={item._id} style={{ marginBottom: '20px' }}>
