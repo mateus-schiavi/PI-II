@@ -44,20 +44,23 @@ const InventoryList = ({onLogout}) => {
     const cleanValue = value.replace(/[^\d,]/g, '').replace(',', '.');
     return parseFloat(cleanValue) || 0;
   };
-
   useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/inventory/items');
+        console.log('Resposta da API:', response.data);
         setItems(response.data);
       } catch (err) {
+        // Log do erro detalhado
+        console.error('Erro ao buscar itens:', err.response ? err.response.data : err.message);
         setError('Erro ao buscar itens');
       }
     };
-
+  
     fetchItems();
   }, []);
-
+  
+  
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/inventory/items/${id}`);

@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes'); // Supondo que as rotas de autenticação estejam nesse arquivo
-
+const inventoryRoutes = require('./routes/inventoryRoutes');
 const app = express();
 
 // Middlewares
@@ -22,7 +22,7 @@ mongoose.connect('mongodb://localhost:27017/seubanco', {
 
 // Usando as rotas de autenticação
 app.use('/api/auth', authRoutes);
-
+app.use('/api/inventory', inventoryRoutes);
 // Definindo a porta do servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User'); // Importa o modelo User
-
+const Item = require('../models/itemModel');
 // Rota para login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -26,8 +26,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Rota para registro de usuário
-const User = require('../models/User'); // Certifique-se de que o modelo está sendo importado corretamente
 
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -46,6 +44,16 @@ router.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Erro ao registrar usuário:', error);
     res.status(500).json({ message: 'Erro ao registrar usuário' });
+  }
+});
+
+router.get('/api/inventory/items', async (req, res) => {
+  try {
+    const items = await Item.find();
+    res.status(200).json(items);
+  } catch (error) {
+    console.error('Erro ao buscar itens de inventário:', error);
+    res.status(500).json({message: 'Erro ao buscar itens de inventário'});
   }
 });
 
