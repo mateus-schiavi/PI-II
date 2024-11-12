@@ -54,6 +54,7 @@ const Register = ({ onGoToLogin }) => {
         onChange={(e) => setPassword(e.target.value)}
       />
       <button onClick={handleRegister}>Registrar</button>
+      <button onClick={onGoToLogin}>Página de Login</button>
     </div>
   );
 };
