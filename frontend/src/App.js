@@ -3,7 +3,7 @@ import InventoryList from './InventoryList';
 import Login from './Login';
 import Register from './Register';  // Importando o novo componente de registro
 import './App.css';
-import logo from './assets/logo.png'
+import logotipo from './assets/logotipo.png'
 const App = () => {
   const [isLoggedin, setIsLoggedIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);  // Estado para controlar a navegação
@@ -22,7 +22,7 @@ const App = () => {
 
   return (
     <div>
-      <img src={logo} alt='Logo ' style={{width: '150px', height: 'auto'}}/>
+      <img src={logotipo} alt='Logo ' style={{width: '250px', height: 'auto'}}/>
       {
         isLoggedin ? (
           <InventoryList onLogout={handleLogout} />
